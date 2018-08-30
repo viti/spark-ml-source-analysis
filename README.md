@@ -1,10 +1,12 @@
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;![spark](spark-logo-trademark.png)
+
 # spark机器学习算法研究和源码分析
 
 &emsp;&emsp;本项目对`spark ml`包中各种算法的原理加以介绍并且对算法的代码实现进行详细分析，旨在加深自己对机器学习算法的理解，熟悉这些算法的分布式实现方式。
 
 ## 本系列文章支持的spark版本
 
-- **spark 2.x**
+&emsp;&emsp;本系列文章大部分的算法基于spark 1.6.1，少部分基于spark 2.x。
 
 ## 本系列的目录结构
 
@@ -30,6 +32,7 @@
     * [组合树](分类和回归/组合树/readme.md)
         * [随机森林](分类和回归/组合树/随机森林/random-forests.md)
         * [梯度提升树](分类和回归/组合树/梯度提升树/gbts.md)
+    * [生存回归](分类和回归/生存回归/survival-regression.md)
     * [保序回归](分类和回归/保序回归/isotonic-regression.md)
 * [聚类](聚类/readme.md)
     * [k-means||算法](聚类/k-means/k-means.md)
@@ -86,7 +89,7 @@
 
 &emsp;&emsp;本专题的部分文章中用到了latex来写数学公式,可以在浏览器中安装`MathJax`插件用来展示这些公式。
 
-&emsp;&emsp;本人水平有限，分析中难免有错误和误解的地方，请大家不吝指教，万分感激。有问题可以到 [![Codewake](https://www.codewake.com/badges/ask_question.svg)](https://www.codewake.com/p/spark-ml-source-analysis) 讨论。
+&emsp;&emsp;本人水平有限，分析中难免有错误和误解的地方，请大家不吝指教，万分感激。
     
 ## License
 

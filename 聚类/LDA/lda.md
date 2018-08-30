@@ -321,16 +321,16 @@ $\theta=(P(z_{k}|d_{i}),P(w_{j}|z_{k}))$就是我们要估计的参数,我们要
 
 ## 2.4 LDA模型
 
-&emsp;&emsp;`LDA`的不同之处在于，`pLSA`的主题的概率分布`P(c|d)`是一个确定的概率分布，也就是虽然主题`c`不确定，但是`c`符合的概率分布是确定的，比如符合某个多项分布，这个多项分布的各参数是确定的。
-但是在`LDA`中，这个多项分布都是不确定的，高斯分布又服从一个狄利克雷先验分布`(Dirichlet prior)`。即`LDA`就是`pLSA`的贝叶斯版本,正因为`LDA`被贝叶斯化了，所以才会加的两个先验参数。
+&emsp;&emsp;`LDA`的不同之处在于，`pLSA`的主题的概率分布`P(z|d)`是一个确定的概率分布，也就是虽然主题`z`不确定，但是`z`符合的概率分布是确定的，比如符合某个多项分布，这个多项分布的各参数是确定的。
+但是在`LDA`中，这个多项分布都是不确定的，这个多项式分布又服从一个狄利克雷先验分布`(Dirichlet prior)`。即`LDA`就是`pLSA`的贝叶斯版本,正因为`LDA`被贝叶斯化了，所以才会加两个先验参数。
 
 &emsp;&emsp;`LDA`模型中一篇文档生成的方式如下所示:
 
 - 1 按照$P(d_{i})$选择一篇文档$d_{i}$ ；
 
-- 2 从狄利克雷分布$\alpha$中生成文档i的主题分布$\theta_{i}$ ；
+- 2 从狄利克雷分布$\alpha$中生成文档$d_{i}$的主题分布$\theta_{i}$ ；
 
-- 3 从主题的多项式分布$\theta_{i}$中取样生成文档i第j个词的主题$Z_{i,j}$ ；
+- 3 从主题的多项式分布$\theta_{i}$中取样生成文档$d_{i}$第`j`个词的主题$Z_{i,j}$ ；
 
 - 4 从狄利克雷分布$\eta$中取样生成主题$Z_{i,j}$对应的词语分布$\beta_{i,j}$ ；
 
@@ -344,11 +344,11 @@ $\theta=(P(z_{k}|d_{i}),P(w_{j}|z_{k}))$就是我们要估计的参数,我们要
 
 &emsp;&emsp;举个文档`d`产生主题`z`的例子。
 
-&emsp;&emsp;在`pLSA`中，给定一篇文档d，主题分布是一定的，比如`{ P(zi|d), i = 1,2,3 }`可能就是`{0.4,0.5,0.1}`，表示`z1、z2、z3`这3个主题被文档`d`选中的概率都是个固定的值：`P(z1|d) = 0.4、P(z2|d) = 0.5、P(z3|d) = 0.1`，如下图所示:
+&emsp;&emsp;在`pLSA`中，给定一篇文档`d`，主题分布是一定的，比如`{ P(zi|d), i = 1,2,3 }`可能就是`{0.4,0.5,0.1}`，表示`z1、z2、z3`这3个主题被文档`d`选中的概率都是个固定的值：`P(z1|d) = 0.4、P(z2|d) = 0.5、P(z3|d) = 0.1`，如下图所示:
 
 <div  align="center"><img src="imgs/2.3.4.png" width = "490" height = "350" alt="LDA模型" align="center" /></div><br>
 
-&emsp;&emsp;在`LDA`中，主题分布（各个主题在文档中出现的概率分布）和词分布（各个词语在某个主题下出现的概率分布）是唯一确定的。`LDA`为提供了两个`Dirichlet`先验参数，`Dirichlet`先验为某篇文档随机抽取出主题分布和词分布。
+&emsp;&emsp;在`pLSA`中，主题分布（各个主题在文档中出现的概率分布）和词分布（各个词语在某个主题下出现的概率分布）是唯一确定的，而`LDA`的主题分布和词分布是不固定的。`LDA`为提供了两个`Dirichlet`先验参数，`Dirichlet`先验为某篇文档随机抽取出主题分布和词分布。
 
 &emsp;&emsp;给定一篇文档`d`，现在有多个主题`z1、z2、z3`，它们的主题分布`{ P(zi|d), i = 1,2,3 }`可能是`{0.4,0.5,0.1}`，也可能是`{0.2,0.2,0.6}`，即这些主题被`d`选中的概率都不再是确定的值，可能是`P(z1|d) = 0.4、P(z2|d) = 0.5、P(z3|d) = 0.1`，也有可能是`P(z1|d) = 0.2、P(z2|d) = 0.2、P(z3|d) = 0.6`，而主题分布到底是哪个取值集合我们不确定，但其先验分布是`dirichlet`分布，所以可以从无穷多个主题分布中按照`dirichlet`先验随机抽取出某个主题分布出来。如下图所示
 
@@ -362,42 +362,42 @@ $\theta=(P(z_{k}|d_{i}),P(w_{j}|z_{k}))$就是我们要估计的参数,我们要
 
 # 3 LDA 参数估计
 
-&emsp;&emsp;在`spark`中，提供了两种方法来估计参数，分别是变分`EM`（期望最大）算法（见文献【3】【4】）和在线学习算法（见文献【5】）。下面将分别介绍这两种算法以及其源码实现。
+&emsp;&emsp; `spark`实现了2个版本的`LDA`，这里分别叫做`Spark EM LDA`（见文献【3】【4】）和`Spark Online LDA`（见文献【5】）。它们使用同样的数据输入，但是内部的实现和依据的原理完全不同。`Spark EM LDA`使用`GraphX`实现的，通过对图的边和顶点数据的操作来训练模型。而`Spark Online LDA`采用抽样的方式，每次抽取一些文档训练模型，通过多次训练，得到最终模型。在参数估计上，`Spark EM LDA`使用`gibbs`采样原理估计模型参数，`Spark Online LDA`使用贝叶斯变分推断原理估计参数。在模型存储上，`Spark EM LDA`将训练的主题-词模型存储在`GraphX`图顶点上，属于分布式存储方式。`Spark Online`使用矩阵来存储主题-词模型，属于本地模型。通过这些差异，可以看出`Spark EM LDA`和`Spark Online LDA`的不同之处，同时他们各自也有各自的瓶颈。`Spark EM LDA`在训练时`shuffle`量相当大，严重拖慢速度。而`Spark Online LDA`使用矩阵存储模型，矩阵规模直接限制训练文档集的主题数和词的数目。另外，`Spark EM LDA`每轮迭代完毕后更新模型，`Spark Online LDA`每训练完抽样的文本更新模型，因而`Spark Online LDA`模型更新更及时，收敛速度更快。
 
 ## 3.1 变分EM算法
 
 &emsp;&emsp;变分贝叶斯算法的详细信息可以参考文献【9】。
 
-&emsp;&emsp;在上文中，我们知道`LDA`将变量`theta`和`phi`（为了方便起见，我们将上文`LDA`图模型中的`beta`改为了`phi`）看做随机变量，并且为`theta`添加一个超参数为`alpha`的`Dirichlet`先验，为`phi`添加一个超参数为`eta`的`Dirichlet`先验来估计`theta`和`beta`的最大后验（`MAP`）。
+&emsp;&emsp;在上文中，我们知道`LDA`将变量`theta`和`phi`（为了方便起见，我们将上文`LDA`图模型中的`beta`改为了`phi`）看做随机变量，并且为`theta`添加一个超参数为`alpha`的`Dirichlet`先验，为`phi`添加一个超参数为`eta`的`Dirichlet`先验来估计`theta`和`phi`的最大后验（`MAP`）。
 可以通过最优化最大后验估计来估计参数。我们首先来定义几个变量：
 
-- 下式的`gamma`表示词为`w`，文档为`j`时，主题为`k`的概率，如公式**（3.1.1）**
+- 下式的`gamma`表示词为`w`，文档为`j`时，主题为`k`的概率，如公式 **（3.1.1）**
 
 <div  align="center"><img src="imgs/3.1.1.png" width = "255" height = "30" alt="topic_words" align="center" /></div><br>
 
 - $N_{wj}$表示词`w`在文档`j`中出现的次数；
 
-- $N_{wk}$表示词`w`在主题`k`中出现的次数，如公式**（3.1.2）**
+- $N_{wk}$表示词`w`在主题`k`中出现的次数，如公式 **（3.1.2）**
 
 <div  align="center"><img src="imgs/3.1.2.png" width = "170" height = "60" alt="topic_words" align="center" /></div><br>
 
-- $N_{kj}$表示主题`k`在文档`j`中出现的次数，如公式**（3.1.3）**
+- $N_{kj}$表示主题`k`在文档`j`中出现的次数，如公式 **（3.1.3）**
 
 <div  align="center"><img src="imgs/3.1.3.png" width = "160" height = "55" alt="topic_words" align="center" /></div><br>
 
-- $N_{k}$表示主题`k`中包含的词出现的总次数，如公式**（3.1.4）**
+- $N_{k}$表示主题`k`中包含的词出现的总次数，如公式 **（3.1.4）**
 
 <div  align="center"><img src="imgs/3.1.4.png" width = "120" height = "50" alt="topic_words" align="center" /></div><br>
 
-- $N_{j}$表示文档`j`中包含的主题出现的总次数,如公式**（3.1.5）**
+- $N_{j}$表示文档`j`中包含的主题出现的总次数,如公式 **（3.1.5）**
 
 <div  align="center"><img src="imgs/3.1.5.png" width = "120" height = "50" alt="topic_words" align="center" /></div><br>
 
-&emsp;&emsp;根据文献【4】中`2.2`章节的介绍，我们可以推导出如下更新公式**(3.1.6)**，其中`alpha`和`eta`均大于1：
+&emsp;&emsp;根据文献【4】中`2.2`章节的介绍，我们可以推导出如下更新公式 **(3.1.6)** ，其中`alpha`和`eta`均大于1：
 
 <div  align="center"><img src="imgs/3.1.6.png" width = "360" height = "60" alt="topic_words" align="center" /></div><br>
 
-&emsp;&emsp;收敛之后，最大后验估计可以得到公式**(3.1.7)**：
+&emsp;&emsp;收敛之后，最大后验估计可以得到公式 **(3.1.7)**：
 
 <div  align="center"><img src="imgs/3.1.7.png" width = "450" height = "60" alt="topic_words" align="center" /></div><br>
 
@@ -418,47 +418,47 @@ $\theta=(P(z_{k}|d_{i}),P(w_{j}|z_{k}))$就是我们要估计的参数,我们要
 ### 3.2.1 批量变分贝叶斯
 
 &emsp;&emsp;在变分贝叶斯推导(`VB`)中，根据文献【3】，使用一种更简单的分布`q(z,theta,beta)`来估计真正的后验分布，这个简单的分布使用一组自由变量(`free parameters`)来定义。
-通过最大化对数似然的一个下界（`Evidence Lower Bound (ELBO)`）来最优化这些参数，如下公式**(3.2.1)**
+通过最大化对数似然的一个下界（`Evidence Lower Bound (ELBO)`）来最优化这些参数，如下公式 **(3.2.1)**
 
 <div  align="center"><img src="imgs/3.2.1.png" width = "500" height = "25" alt="topic_words" align="center" /></div><br>
 
-&emsp;&emsp;最大化`ELBO`就是最小化`q(z,theta,beta)`和`p(z,theta,beta|w,alpha,eta)`的`KL`距离。根据文献【3】，我们将`q`因式分解为如下**（3.2.2）**的形式：
+&emsp;&emsp;最大化`ELBO`就是最小化`q(z,theta,beta)`和`p(z,theta,beta|w,alpha,eta)`的`KL`距离。根据文献【3】，我们将`q`因式分解为如下 **（3.2.2）** 的形式：
 
 <div  align="center"><img src="imgs/3.2.2.png" width = "500" height = "20" alt="topic_words" align="center" /></div><br>
 
-&emsp;&emsp;后验`z`通过`phi`来参数化，后验`theta`通过`gamma`来参数化，后验`beta`通过`lambda`来参数化。为了简单描述，我们把`lambda`当作“主题”来看待。公式**(3.2.2)**分解为如下**(3.2.3)**形式：
+&emsp;&emsp;后验`z`通过`phi`来参数化，后验`theta`通过`gamma`来参数化，后验`beta`通过`lambda`来参数化。为了简单描述，我们把`lambda`当作“主题”来看待。公式 **(3.2.2)** 分解为如下 **(3.2.3)** 形式：
 
 <div  align="center"><img src="imgs/3.2.3.png" width = "550" height = "50" alt="topic_words" align="center" /></div><br>
 
-&emsp;&emsp;我们现在将上面的期望扩展为变分参数的函数形式。这反映了变分目标只依赖于$n_{dw}$ ，即词`w`出现在文档`d`中的次数。当使用`VB`算法时，文档可以通过它们的词频来汇总（`summarized`），如公式**(3.2.4)**
+&emsp;&emsp;我们现在将上面的期望扩展为变分参数的函数形式。这反映了变分目标只依赖于$n_{dw}$ ，即词`w`出现在文档`d`中的次数。当使用`VB`算法时，文档可以通过它们的词频来汇总（`summarized`），如公式 **(3.2.4)**
 
 <div  align="center"><img src="imgs/3.2.4.png" width = "500" height = "110" alt="topic_words" align="center" /></div><br>
 
-&emsp;&emsp;上面的公式中，`W`表示词的数量，`D`表示文档的数量。`l`表示文档`d`对`ELBO`所做的贡献。`L`可以通过坐标上升法来最优化，它的更新公式如**(3.2.5)**:
+&emsp;&emsp;上面的公式中，`W`表示词的数量，`D`表示文档的数量。`l`表示文档`d`对`ELBO`所做的贡献。`L`可以通过坐标上升法来最优化，它的更新公式如 **(3.2.5)**:
 
 <div  align="center"><img src="imgs/3.2.5.png" width = "600" height = "25" alt="topic_words" align="center" /></div><br>
 
-&emsp;&emsp;`log(theta)`和`log(beta)`的期望通过下面的公式**(3.2.6)**计算：
+&emsp;&emsp;`log(theta)`和`log(beta)`的期望通过下面的公式 **(3.2.6)** 计算：
 
 <div  align="center"><img src="imgs/3.2.6.png" width = "500" height = "25" alt="topic_words" align="center" /></div><br>
 
-&emsp;&emsp;通过`EM`算法，我们可以将这些更新分解成`E-步`和`M-步`。`E-步`固定`lambda`来更新`gamma`和`phi`；`M-步`通过给定`phi`来更新`lambda`。批`VB`算法的过程如下**(算法1)**所示：
+&emsp;&emsp;通过`EM`算法，我们可以将这些更新分解成`E-步`和`M-步`。`E-步`固定`lambda`来更新`gamma`和`phi`；`M-步`通过给定`phi`来更新`lambda`。批`VB`算法的过程如下 **(算法1)** 所示：
 
 <div  align="center"><img src="imgs/alg1.png" width = "400" height = "250" alt="topic_words" align="center" /></div><br>
 
 ### 3.2.2 在线变分贝叶斯
 
 &emsp;&emsp;批量变分贝叶斯算法需要固定的内存，并且比吉布斯采样更快。但是它仍然需要在每次迭代时处理所有的文档，这在处理大规模文档时，速度会很慢，并且也不适合流式数据的处理。
-文献【5】提出了一种在线变分推导算法。设定`gamma(n_d,lambda)`和`phi(n_d,lambda)`分别表示`gamma_d`和`phi_d`的值，我们的目的就是设定`phi`来最大化下面的公式**(3.2.7)**
+文献【5】提出了一种在线变分推导算法。设定`gamma(n_d,lambda)`和`phi(n_d,lambda)`分别表示`gamma_d`和`phi_d`的值，我们的目的就是设定`phi`来最大化下面的公式 **(3.2.7)**
 
 <div  align="center"><img src="imgs/3.2.7.png" width = "260" height = "25" alt="topic_words" align="center" /></div><br>
 
-&emsp;&emsp;我们在**算法2**中介绍了在线`VB`算法。因为词频的第t个向量$n_{t}$是可观察的，我们在`E-步`通过固定`lambda`来找到`gamma_t`和`phi_t`的局部最优解。
-然后，我们计算`lambda_cap`。如果整个语料库由单个文档重复`D`次组成，那么这样的`lambda_cap`设置是最优的。之后，我们通过`lambda`之前的值以及`lambda_cap`来更新`lambda`。我们给`lambda_cap`设置的权重如公式**(3.2.8)**所示：
+&emsp;&emsp;我们在 **算法2** 中介绍了在线`VB`算法。因为词频的第t个向量$n_{t}$是可观察的，我们在`E-步`通过固定`lambda`来找到`gamma_t`和`phi_t`的局部最优解。
+然后，我们计算`lambda_cap`。如果整个语料库由单个文档重复`D`次组成，那么这样的`lambda_cap`设置是最优的。之后，我们通过`lambda`之前的值以及`lambda_cap`来更新`lambda`。我们给`lambda_cap`设置的权重如公式 **(3.2.8)** 所示：
 
 <div  align="center"><img src="imgs/3.2.8.png" width = "220" height = "30" alt="topic_words" align="center" /></div><br>
 
-&emsp;&emsp;在线`VB`算法的实现流程如下**算法2**所示
+&emsp;&emsp;在线`VB`算法的实现流程如下 **算法2** 所示
 
 <div  align="center"><img src="imgs/alg2.png" width = "400" height = "250" alt="topic_words" align="center" /></div><br>
 
@@ -471,24 +471,24 @@ $\theta=(P(z_{k}|d_{i}),P(w_{j}|z_{k}))$就是我们要估计的参数,我们要
 <div  align="center"><img src="imgs/3.3.2.png" width = "200" height = "40" alt="3.3.2" align="center" /></div><br>
 
 &emsp;&emsp;有多种方法可以最大化这个目标函数，如梯度上升，`Newton-Raphson`等。`Spark`使用`Newton-Raphson`方法估计参数，更新`alpha`。`Newton-Raphson`提供了一种参数二次收敛的方法，
-它一般的更新规则如下公式**(3.3.3)**:
+它一般的更新规则如下公式 **(3.3.3)** :
 
 <div  align="center"><img src="imgs/3.3.3.png" width = "300" height = "30" alt="3.3.2" align="center" /></div><br>
 
 &emsp;&emsp;其中，`H`表示海森矩阵。对于这个特别的对数似然函数，可以应用`Newton-Raphson`去解决高维数据，因为它可以在线性时间求出海森矩阵的逆矩阵。一般情况下，海森矩阵可以用一个对角矩阵和一个元素都一样的矩阵的和来表示。
-如下公式**(3.3.4)**，`Q`是对角矩阵，`C11`是元素相同的一个矩阵。
+如下公式 **(3.3.4)** ，`Q`是对角矩阵，`C11`是元素相同的一个矩阵。
 
 <div  align="center"><img src="imgs/3.3.4.png" width = "300" height = "150" alt="3.3.2" align="center" /></div><br>
 
-&emsp;&emsp;为了计算海森矩阵的逆矩阵，我们观察到，对任意的可逆矩阵`Q`和非负标量`c`，有下列式子**(3.3.5)**:
+&emsp;&emsp;为了计算海森矩阵的逆矩阵，我们观察到，对任意的可逆矩阵`Q`和非负标量`c`，有下列式子 **(3.3.5)**:
 
 <div  align="center"><img src="imgs/3.3.5.png" width = "550" height = "170" alt="3.3.5" align="center" /></div><br>
 
-&emsp;&emsp;因为`Q`是对角矩阵，所以`Q`的逆矩阵可以很容易的计算出来。所以`Newton-Raphson`的更新规则可以重写为如下**(3.3.6)**的形式
+&emsp;&emsp;因为`Q`是对角矩阵，所以`Q`的逆矩阵可以很容易的计算出来。所以`Newton-Raphson`的更新规则可以重写为如下 **(3.3.6)** 的形式
 
 <div  align="center"><img src="imgs/3.3.6.png" width = "250" height = "50" alt="3.3.6" align="center" /></div><br>
 
-&emsp;&emsp;其中`b`如下公式**(3.3.7)**，
+&emsp;&emsp;其中`b`如下公式 **(3.3.7)**，
 
 <div  align="center"><img src="imgs/3.3.7.png" width = "300" height = "40" alt="3.3.7" align="center" /></div><br>
 
@@ -506,7 +506,7 @@ val data = sc.textFile("data/mllib/sample_lda_data.txt")
 val parsedData = data.map(s => Vectors.dense(s.trim.split(' ').map(_.toDouble)))
 // 为文档编号，编号唯一。List（（id，vector）....）
 val corpus = parsedData.zipWithIndex.map(_.swap).cache()
-// 将文档聚类为3类
+// 主题个数为3
 val ldaModel = new LDA().setK(3).run(corpus)
 val topics = ldaModel.topicsMatrix
 for (topic <- Range(0, 3)) {
@@ -540,11 +540,11 @@ def run(documents: RDD[(Long, Vector)]): LDAModel = {
 
 &emsp;&emsp;在`spark`中，使用`GraphX`来实现`EMLDAOptimizer`，这个图是有两种类型的顶点的二分图。这两类顶点分别是文档顶点（`Document vertices`）和词顶点（`Term vertices`）。
 
-- 文档顶点使用大于0的唯一的指标来索引，保存长度为`k`（主题个数）的向量
+- 文档顶点文档顶点`ID`编号从0递增，保存长度为`k`（主题个数）的向量
 
-- 词顶点使用`{-1, -2, ..., -vocabSize}`来索引，保存长度为`k`（主题个数）的向量
+- 词顶点使用`{-1, -2, ..., -vocabSize}`来索引，词顶点编号从-1递减，保存长度为`k`（主题个数）的向量
 
-- 边（`edges`）对应词出现在文档中的情况。边的方向是`document -> term`，并且根据`document`进行分区
+- 边（`edges`）对应词出现在文档中的词频。边的方向是`document -> term`，并且根据`document`进行分区
 
 &emsp;&emsp;我们可以根据3.1节中介绍的算法流程来解析源代码。
 
@@ -620,7 +620,7 @@ this.graph = Graph(docTermVertices, edges).partitionBy(PartitionStrategy.EdgePar
         edgeContext.sendToSrc((false, scaledTopicDistribution))
       }
 ```
-&emsp;&emsp;上述代码中，`W`表示词数，`N_k`表示所有文档中，出现在主题`k`中的词的词频总数，后续的实现会使用方法`computeGlobalTopicTotals`来更新这个值。`N_wj`表示词`w`出现在文档`j`中的词频数，为已知数。`E-步`就是利用公式**(3.1.6)**去更新`gamma`。
+&emsp;&emsp;上述代码中，`W`表示词数，`N_k`表示所有文档中，出现在主题`k`中的词的词频总数，后续的实现会使用方法`computeGlobalTopicTotals`来更新这个值。`N_wj`表示词`w`出现在文档`j`中的词频数，为已知数。`E-步`就是利用公式 **(3.1.6)** 去更新`gamma`。
 代码中使用`computePTopic`方法来实现这个更新。`edgeContext`通过方法`sendToDst`将`scaledTopicDistribution`发送到目标顶点，
 通过方法`sendToSrc`发送到源顶点以便于后续的`M-步`更新的`N_kj`和`N_wk`。下面我们看看`computePTopic`方法。
 
@@ -652,7 +652,7 @@ private[clustering] def computePTopic(
     BDV(gamma_wj) /= sum
   }
 ```
-&emsp;&emsp;这段代码比较简单，完全按照公式**(3.1.6)**表示的样子来实现。`val gamma_wjk = (N_w(k) + eta1) * (N_j(k) + alpha1) / (N(k) + Weta1)`就是实现的更新逻辑。
+&emsp;&emsp;这段代码比较简单，完全按照公式 **(3.1.6)** 表示的样子来实现。`val gamma_wjk = (N_w(k) + eta1) * (N_j(k) + alpha1) / (N(k) + Weta1)`就是实现的更新逻辑。
 
 ### 4.2.3 M-步：更新phi和theta
 
@@ -662,7 +662,7 @@ val docTopicDistributions: VertexRDD[TopicCounts] =
    graph.aggregateMessages[(Boolean, TopicCounts)](sendMsg, mergeMsg).mapValues(_._2)
 ```
 
-&emsp;&emsp;我们由公式**(3.1.7)**可知，更新隐藏变量`phi`和`theta`就是更新相应的`N_kj`和`N_wk`。聚合更新使用`aggregateMessages`方法来实现。请参考文献【7】来了解该方法的作用。
+&emsp;&emsp;我们由公式 **(3.1.7)** 可知，更新隐藏变量`phi`和`theta`就是更新相应的`N_kj`和`N_wk`。聚合更新使用`aggregateMessages`方法来实现。请参考文献【7】来了解该方法的作用。
 
 ## 4.3 在线变分算法的代码实现
 
@@ -744,9 +744,9 @@ private[clustering] def dirichletExpectation(alpha: BDM[Double]): BDM[Double] = 
     result
   }
 ```
-&emsp;&emsp;上述代码调用`exp(LDAUtils.dirichletExpectation(lambda))`方法实现参数为`lambda`的`log beta`的期望。实现原理参见公式**(3.2.6)**。
+&emsp;&emsp;上述代码调用`exp(LDAUtils.dirichletExpectation(lambda))`方法实现参数为`lambda`的`log beta`的期望。实现原理参见公式 **(3.2.6)**。
 
-- **2** 计算`phi`以及`gamma`，即**算法2**中的`E-步`
+- **2** 计算`phi`以及`gamma`，即 **算法2** 中的`E-步`
 
 ```scala
 //对采样文档进行分区处理
@@ -768,7 +768,7 @@ val stats: RDD[(BDM[Double], List[BDV[Double]])] = batch.mapPartitions { docs =>
       Iterator((stat, gammaPart))
     }
 ```
-&emsp;&emsp;上面的代码调用`OnlineLDAOptimizer.variationalTopicInference`实现**算法2**中的`E-步`,迭代计算`phi`和`gamma`。
+&emsp;&emsp;上面的代码调用`OnlineLDAOptimizer.variationalTopicInference`实现 **算法2** 中的`E-步`,迭代计算`phi`和`gamma`。
 
 ```scala
 private[clustering] def variationalTopicInference(
@@ -816,7 +816,7 @@ private[clustering] def variationalTopicInference(
     // 更新lambda和alpha
     updateLambda(batchResult, (miniBatchFraction * corpusSize).ceil.toInt)
 ```
-&emsp;&emsp;`updateLambda`方法实现**算法2**中的`M-步`,更新`lambda`。实现代码如下：
+&emsp;&emsp;`updateLambda`方法实现 **算法2** 中的`M-步`,更新`lambda`。实现代码如下：
 
 ```scala
 private def updateLambda(stat: BDM[Double], batchSize: Int): Unit = {

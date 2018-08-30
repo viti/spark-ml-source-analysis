@@ -10,11 +10,11 @@
 
 <div  align="center"><img src="imgs/1.4.png" width = "120" height = "30" alt="1.4" align="center" /></div><br>
 
-&emsp;&emsp;`A`矩阵可以将这组正则基映射为如下的形式。
+&emsp;&emsp;`A`矩阵可以将这组正交基映射为如下的形式。
 
 <div  align="center"><img src="imgs/1.5.png" width = "150" height = "30" alt="1.5" align="center" /></div><br>
 
-&emsp;&emsp;要使上面的基也为正则基，即使它们两两正交，那么需要满足下面的条件。
+&emsp;&emsp;要使上面的基也为正交基，即使它们两两正交，那么需要满足下面的条件。
 
 <div  align="center"><img src="imgs/1.6.png" width = "300" height = "35" alt="1.6" align="center" /></div><br>
 
@@ -30,7 +30,7 @@
 
 <div  align="center"><img src="imgs/1.9.png" width = "190" height = "60" alt="1.9" align="center" /></div><br>
 
-&emsp;&emsp;可以得到
+&emsp;&emsp;可以得到(下面的公式有误，delta_i 应该等于sqrt(lamda_i))
 
 <div  align="center"><img src="imgs/1.10.png" width = "260" height = "55" alt="1.10" align="center" /></div><br>
 
@@ -38,7 +38,7 @@
 
 <div  align="center"><img src="imgs/1.11.png" width = "90" height = "30" alt="1.11" align="center" /></div><br>
 
-&emsp;&emsp;其中，`U`是一个`M*M`的方阵，它包含的向量是正交的，称为左奇异向量（即上文的`u`）。`sigma`是一个`N*M`的对角矩阵，每个对角线上的元素就是一个奇异值。`V`是一个`N*N`的矩阵，它包含的向量是正交的，称为右奇异向量（即上文的`v`）。
+&emsp;&emsp;其中，`U`是一个`M*M`的方阵，它包含的向量是正交的，称为左奇异向量（即上文的`u`）。`sigma`是一个`M*N`的对角矩阵，每个对角线上的元素就是一个奇异值。`V`是一个`N*N`的矩阵，它包含的向量是正交的，称为右奇异向量（即上文的`v`）。
 
 
 ## 2 源码分析
